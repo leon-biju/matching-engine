@@ -1,2 +1,21 @@
 # matching-engine
-A high-performance order matching engine in modern C++ (23)
+
+A C++23 project to build and compare two multi-symbol order matching engines: a clear reference implementation and a performance-optimized implementation. Both will process streams of orders and produce deterministic results under the same matching rules.
+
+## Project scope
+
+- **Version 1 (reference engine):** A single-threaded correctness baseline that prioritises clarity and provides a reference for validating Version 2.
+- **Version 2 (optimised engine):** A high-performance, multi-threaded implementation evaluated against the reference engine for both correctness and speed.
+
+## Documentation
+
+- [Matching semantics](docs/semantics.md): Order model and matching rules.
+- [Command and event interfaces](docs/interfaces.md): Inputs, outputs, and event ordering. Together with matching semantics, this defines the engine contract.
+- [Architecture](docs/architecture.md): Engine structure and implementation approaches for both versions.
+- [Testing](docs/testing.md): Validation strategy and correctness invariants.
+- [Benchmarking](docs/benchmarking.md): Performance metrics and workloads.
+- [Roadmap](docs/roadmap.md): Development phases and open decisions.
+
+## License
+
+[MIT License](LICENSE)

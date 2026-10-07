@@ -13,6 +13,7 @@ using Symbol = std::string;
 using Price = std::uint64_t;
 using Quantity = std::uint64_t;
 using EventIndex = std::uint64_t;
+using EngineSequence = std::uint64_t;
 
 enum class OrderSide { Buy, Sell };
 enum class OrderType { LimitGTC, LimitIOC, LimitFOK, MarketIOC, MarketFOK };

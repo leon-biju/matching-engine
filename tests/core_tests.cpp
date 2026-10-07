@@ -86,6 +86,7 @@ TEST(CommandTest, EqualityComparesAlternativeAndContents) {
 TEST(EventTest, DefaultsToEmptyOrderAccepted) {
     const Event event{};
 
+    EXPECT_EQ(event.engine_sequence, 0u);
     EXPECT_EQ(event.event_index, 0u);
     EXPECT_FALSE(event.symbol.has_value());
     ASSERT_TRUE(std::holds_alternative<OrderAccepted>(event.payload));
@@ -109,18 +110,21 @@ TEST(EventTest, SupportsEveryImplementedPayload) {
 
     for (std::size_t i = 0; i < payloads.size(); ++i) {
         SCOPED_TRACE(i);
-        const Event event{7, "ABC", payloads[i]};
+        const Event event{3, 7, "ABC", payloads[i]};
         EXPECT_EQ(event.payload.index(), i);
         EXPECT_EQ(event.payload, payloads[i]);
-        EXPECT_EQ(event, (Event{7, "ABC", payloads[i]}));
+        EXPECT_EQ(event, (Event{3, 7, "ABC", payloads[i]}));
     }
 }
 
-TEST(EventTest, EqualityComparesIndexSymbolAndPayload) {
-    const Event event{7, "ABC", OrderRested{1, 100, 5}};
+TEST(EventTest, EqualityComparesSequenceIndexSymbolAndPayload) {
+    const Event event{3, 7, "ABC", OrderRested{1, 100, 5}};
     auto other = event;
     EXPECT_EQ(event, other);
 
+    other.engine_sequence = 4;
+    EXPECT_NE(event, other);
+    other = event;
     other.event_index = 8;
     EXPECT_NE(event, other);
     other = event;

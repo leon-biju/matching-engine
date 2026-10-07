@@ -67,6 +67,7 @@ struct CancelRejected {
 using EventPayload = std::variant<OrderAccepted, OrderRejected, Trade, OrderRested, OrderCancelled, CancelRejected>;
 
 struct Event {
+    EngineSequence engine_sequence{};
     EventIndex event_index{};
     std::optional<Symbol> symbol;
     EventPayload payload;

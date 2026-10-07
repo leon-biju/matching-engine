@@ -7,6 +7,16 @@ A C++23 project to build and compare two multi-symbol order matching engines: a 
 - **Version 1 (reference engine):** A single-threaded correctness baseline that prioritises clarity and provides a reference for validating Version 2.
 - **Version 2 (optimised engine):** A high-performance, multi-threaded implementation evaluated against the reference engine for both correctness and speed.
 
+## Building and Testing
+
+Requires CMake 3.25 or newer and any C++23 compiler (Developed primarily using clang++).
+
+```sh
+cmake --preset default
+cmake --build --preset default
+ctest --preset default
+```
+
 ## Documentation
 
 - [Matching semantics](docs/semantics.md): Order model and matching rules.

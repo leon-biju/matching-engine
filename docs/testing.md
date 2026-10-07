@@ -1,5 +1,12 @@
 # Testing
 
+## Current tests
+
+Currently, there exists a very basic suite of tests on the core components.
+Run the suite using the [build and test commands](../README.md#build-and-test).
+
+## Planned engine validation
+
 Both versions will have unit and integration tests for the [matching rules](semantics.md) and [command/event contract](interfaces.md). Property/randomised tests and fuzz tests will check the invariants below across generated command streams.
 
 Differential tests will run the same commands through both engines and compare their complete output event streams and final book state.

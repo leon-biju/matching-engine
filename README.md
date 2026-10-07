@@ -17,6 +17,15 @@ cmake --build --preset default
 ctest --preset default
 ```
 
+## Continuous integration
+
+GitHub Actions runs on pushes and PRs to/from `master` branch:
+
+- Release builds and GoogleTest tests with both Clang 18 and GCC 14 on Ubuntu 24.04.
+- A Clang Debug build with AddressSanitizer (including leak detection) and UndefinedBehaviorSanitizer.
+
+The workflow is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml).
+
 ## Documentation
 
 - [Matching semantics](docs/semantics.md): Order model and matching rules.

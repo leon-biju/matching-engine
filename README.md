@@ -1,6 +1,6 @@
 # matching-engine
 
-A C++23 project to build and compare two multi-symbol order matching engines: a clear reference implementation and a performance-optimized implementation. Both will process streams of orders and produce deterministic results under the same matching rules.
+A C++23 project to build and compare two multi-symbol order matching engines: a clear reference implementation and a performance-optimised implementation. Both will process streams of orders and produce deterministic results under the same matching rules.
 
 ## Project scope
 

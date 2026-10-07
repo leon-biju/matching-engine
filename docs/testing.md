@@ -1,6 +1,6 @@
 # Testing
 
-Both versions will have unit and integration tests for the[matching rules](semantics.md) and [command/event contract](interfaces.md). Property/randomized tests and fuzz tests will check the invariants below across generated command streams.
+Both versions will have unit and integration tests for the [matching rules](semantics.md) and [command/event contract](interfaces.md). Property/randomised tests and fuzz tests will check the invariants below across generated command streams.
 
 Differential tests will run the same commands through both engines and compare their complete output event streams and final book state.
 

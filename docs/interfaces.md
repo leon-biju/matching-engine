@@ -9,13 +9,13 @@ This file defines the commands the engine receives and the events it produces. F
 
 ## Events
 
-Common fields on every event:
+Each command produces one event batch with these fields:
 
-* Engine sequence
-* Event index
-* Symbol, when the command can be associated with a valid symbol
+* Engine sequence of the command.
+* Symbol, when the command can be associated with a valid symbol. For a cancel, this is the target order's symbol.
+* The ordered list of events.
 
-Event-specific fields:
+Event fields:
 
 * **OrderAccepted:** Order ID, side, order type, original quantity, and limit price when applicable.
 * **OrderRejected:** Order ID and a stable rejection reason code.
@@ -26,7 +26,7 @@ Event-specific fields:
 
 ## Event ordering
 
-Each input command produces exactly one complete event batch. Batches are published in global engine-sequence order, with no interleaving between commands. Events within a batch have a zero-based event index. The pair `(engine sequence, event index)` gives every output event a stable global order. A slower command may delay publication of later batches, but cannot change their order.
+Each input command produces exactly one complete event batch. Batches are published in global engine-sequence order, with no interleaving between commands. An event's index is its zero-based position in the batch. The pair `(engine sequence, event index)` gives every output event a stable global order. A slower command may delay publication of later batches, but cannot change their order.
 
 * A rejected new order emits only `OrderRejected`.
 * An accepted new order emits `OrderAccepted`, followed by zero or more `Trade` events in execution order.

@@ -10,6 +10,3 @@ The development phases are:
 
 Networking / an end-to-end system is an optional follow-up.
 
-## Open decisions to be made...
-
-* Should unknown symbols be rejected, or should a new symbol book be created automatically?? The current [matching rules](semantics.md#command-validation) require configured symbols and reject unknown ones.

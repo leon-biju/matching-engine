@@ -5,7 +5,7 @@ This document defines the order model and matching rules for both engines. Comma
 ## Order Model
 
 * **Order ID:** An unsigned 64-bit integer. IDs are global across all symbols. Once an order has been accepted, its ID cannot be reused during the lifetime of that engine instance, including after the order is filled or cancelled. An ID from a rejected order may be submitted again.
-* **Symbol:** A pre-configured instrument identifier. Symbols are matched exactly and are case-sensitive.
+* **Symbol:** An instrument identifier from the fixed set passed to the engine constructor. There is no command to add a symbol (yet), and orders for any other symbol are rejected with `UnknownSymbol`. Symbols are matched exactly and are case-sensitive.
 * **Side:** Buy or Sell.
 * **Order type:** LimitGTC, LimitIOC, LimitFOK, MarketIOC, or MarketFOK.
 * **Price:** An unsigned 64-bit integer in atomic currency units (like pence or cents). A limit order must have a price > 0. A market order has no price.

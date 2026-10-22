@@ -7,11 +7,13 @@
 
 namespace matching {
 
+// New orders are checked in this order and rejected with the first reason that applies.
 enum class RejectReason {
-    UnknownSymbol,
     DuplicateOrderId,
-    InvalidPrice,
+    UnknownSymbol,
     InvalidQuantity,
+    InvalidPrice,
+    NoLiquidity,  // Market order when the opposite side's book is empty
     UnknownOrder, // Cancel for an order that is not resting
 };
 

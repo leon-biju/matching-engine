@@ -19,11 +19,15 @@ enum class RejectReason {
 
 struct OrderAccepted {
     OrderId id;
+
+    bool operator==(const OrderAccepted&) const = default;
 };
 
 struct OrderRejected {
     OrderId id;
     RejectReason reason;
+
+    bool operator==(const OrderRejected&) const = default;
 };
 
 struct Trade {
@@ -32,22 +36,30 @@ struct Trade {
     OrderSide aggressor_side;
     Price price;
     Quantity quantity;
+
+    bool operator==(const Trade&) const = default;
 };
 
 struct OrderRested {
     OrderId id;
     Price price;
     Quantity remaining;
+
+    bool operator==(const OrderRested&) const = default;
 };
 
 struct OrderCancelled {
     OrderId id;
     Quantity remaining; // Quantity removed from the book or left unfilled
+
+    bool operator==(const OrderCancelled&) const = default;
 };
 
 struct CancelRejected {
     OrderId id;
     RejectReason reason;
+
+    bool operator==(const CancelRejected&) const = default;
 };
 
 using Event =
@@ -57,6 +69,8 @@ using Event =
 struct EventBatch {
     Sequence sequence;
     std::vector<Event> events;
+
+    bool operator==(const EventBatch&) const = default;
 };
 
 } // namespace matching

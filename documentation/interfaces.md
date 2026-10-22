@@ -1,33 +1,43 @@
 # Interface
-As described in the [Architecture](architecture.md), the main way of passing (?) to/from the engine will be through a SPSC queue.
+As described in the [Architecture](architecture.md), commands are passed into the engine, and events out of it, through SPSC queues.
 
-For the inputs to the engine from the Command Source we will use a `EngineCommand` struct.
+The engine reads `EngineCommand` values from the Command Source Queue. For each command it pushes one `EventBatch` holding every event that the command caused onto the EventSink Queue. For example, one market buy order can produce several trades at different price levels before it is filled.
 
-For the outputs from the engine we will use an `EventBatch` struct comprising of a list of all the events that the command caused.
+So one `EngineCommand` into the engine produces exactly one `EventBatch` out.
 
-For example: 1 market BUY Order received by the engine could produce multiple trades at multiple different price levels until the BUY order is filled.
+## Engine command
+There are two types of engine command:
+* **NewOrder:** order ID, symbol, side, order type, quantity, and an optional price (required for limit orders, absent for market orders).
+* **CancelOrder:** order ID.
 
-So the model is one `EngineCommand` into the Engine will pop out exactly one `EventBatch`.
+## Events
+| Event | Fields | Meaning |
+| --- | --- | --- |
+| `OrderAccepted` | order ID | The order passed validation. |
+| `OrderRejected` | order ID, reason | The order failed validation and never touched the book. |
+| `Trade` | aggressor order ID, resting order ID, aggressor side, price, quantity | Part or all of the incoming order matched one resting order. |
+| `OrderRested` | order ID, price, remaining quantity | The remainder of an order was added to the book. |
+| `OrderCancelled` | order ID, remaining quantity | The quantity that was removed from the book, or that was left unfilled by an IOC or FOK order. |
+| `CancelRejected` | order ID, reason | A cancel named an order that is not resting. |
 
-## Engine Command
-Two types of Engine Commands and their fields:
-* **NewOrder:** Order ID, symbol, side, order type, quantity, price.
-* **CancelOrder:** Order ID.
+The reject reasons are `DuplicateOrderId`, `UnknownSymbol`, `InvalidQuantity`, `InvalidPrice` and `NoLiquidity` for new orders, and `UnknownOrder` for cancels. See [Semantics](semantics.md#validation) for when each applies.
 
-## Event
-These are the types of event:
-(TODO: Mark the fields in here that make sense)
-*  **OrderAccepted**
-*  **OrderRejected**
-*  **Trade**
-*  **OrderRested**
-*  **OrderCancelled**
-*  **CancelRejected**
+## Event order within a batch
+The events in a batch always follow one of these patterns depending on the command issued to the engine.
 
+**NewOrder**
+* Failed validation: `OrderRejected`.
+* Accepted: `OrderAccepted`, then zero or more `Trade`s in the order they happened (price-time priority), then at most one final event:
+  * LimitGTC with a remainder: `OrderRested`.
+  * IOC with a remainder: `OrderCancelled`.
+  * FOK that could not be filled completely: `OrderCancelled` for the full quantity, with zero trades before it.
+  * Fully filled: no final event. The trades account for the whole quantity.
 
-Events such as OrderAccepted are followed by zero or more `Trade` events.
+**CancelOrder**
+* The order was resting: `OrderCancelled`.
+* Otherwise: `CancelRejected`.
 
-## Event Batch
-Now, each list of Events that is caused by an incoming order will be stamped by the Engine with a sequence number.
+## Event batch
+Each batch is stamped with the engine sequence of the command that caused it, so every batch has a unique sequence number.
 
-Batches are published in global engine-sequence order, with no interleaving between command.
+Batches are published in engine-sequence order, and the events of different commands are never interleaved.

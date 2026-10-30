@@ -10,16 +10,34 @@
                 "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
+        },
+        {
+            "name": "sanitize",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build-sanitize",
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer"
+            }
         }
     ],
     "buildPresets": [
-        { "name": "default", "configurePreset": "default" }
+        { "name": "default", "configurePreset": "default" },
+        { "name": "sanitize", "configurePreset": "sanitize" }
     ],
     "testPresets": [
         {
             "name": "default",
             "configurePreset": "default",
             "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "sanitize",
+            "inherits": "default",
+            "configurePreset": "sanitize",
+            "environment": {
+                "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1",
+                "UBSAN_OPTIONS": "print_stacktrace=1"
+            }
         }
     ]
 }

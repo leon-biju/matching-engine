@@ -16,6 +16,8 @@ ctest --preset default
 
 To select another compiler on the first configure, use `cmake --preset default -DCMAKE_CXX_COMPILER=g++`.
 
+To build and test with AddressSanitizer and UndefinedBehaviorSanitizer, use the `sanitize` preset in place of `default` for all three commands. It builds in `build-sanitize`.
+
 ## Documentation
 * Semantics on how both engines should behave are in [Semantics](documentation/semantics.md).
 

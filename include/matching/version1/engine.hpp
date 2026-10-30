@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <cstddef>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -14,8 +14,8 @@ namespace matching::version1 {
 
 class ReferenceEngine {
 public:
-    // Throws std::invalid_argument if a symbol appears more than once.
-    explicit ReferenceEngine(std::vector<std::string> symbols);
+    // Symbol IDs 0 to symbol_count - 1 are valid.
+    explicit ReferenceEngine(std::size_t symbol_count);
 
     // Processes one command and returns exactly one batch of the events it caused.
     EventBatch process(const EngineCommand& command);
@@ -24,7 +24,6 @@ private:
     void handle_new(Sequence sequence, const NewOrder& order, std::vector<Event>& events);
     void handle_cancel(const CancelOrder& cancel, std::vector<Event>& events);
 
-    std::unordered_map<std::string, SymbolId> symbol_ids_;
     std::vector<OrderBook> books_;             // Indexed by SymbolId
     std::unordered_set<OrderId> accepted_ids_; // Every ID ever accepted, never cleared
     std::unordered_map<OrderId, OrderBook::Handle> resting_;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <string>
 #include <variant>
 
 #include "matching/core/types.hpp"
@@ -10,7 +9,7 @@ namespace matching {
 
 struct NewOrder {
     OrderId id;
-    std::string symbol;
+    SymbolId symbol; // Mapped from the symbol name by the command source
     OrderSide side;
     OrderType type;
     Quantity qty;

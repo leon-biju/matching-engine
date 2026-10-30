@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <type_traits>
-#include <utility>
 
 namespace matching::version1 {
 
@@ -22,14 +21,7 @@ OrderSide opposite(OrderSide side) {
 
 } // namespace
 
-ReferenceEngine::ReferenceEngine(std::vector<std::string> symbols) {
-    books_.resize(symbols.size());
-    for (SymbolId id = 0; id < symbols.size(); ++id) {
-        if (!symbol_ids_.emplace(std::move(symbols[id]), id).second) {
-            throw std::invalid_argument("duplicate symbol");
-        }
-    }
-}
+ReferenceEngine::ReferenceEngine(std::size_t symbol_count) : books_(symbol_count) {}
 
 EventBatch ReferenceEngine::process(const EngineCommand& command) {
     // The sequence starts at 1, so it only reaches 0 by wrapping.
@@ -60,8 +52,7 @@ void ReferenceEngine::handle_new(Sequence sequence, const NewOrder& order,
     if (accepted_ids_.contains(order.id)) {
         return reject(RejectReason::DuplicateOrderId);
     }
-    const auto symbol = symbol_ids_.find(order.symbol);
-    if (symbol == symbol_ids_.end()) {
+    if (order.symbol >= books_.size()) {
         return reject(RejectReason::UnknownSymbol);
     }
     if (order.qty == 0) {
@@ -71,7 +62,7 @@ void ReferenceEngine::handle_new(Sequence sequence, const NewOrder& order,
     if (market ? order.price.has_value() : order.price.value_or(0) == 0) {
         return reject(RejectReason::InvalidPrice);
     }
-    OrderBook& book = books_[symbol->second];
+    OrderBook& book = books_[order.symbol];
     if (market && book.side_empty(opposite(order.side))) {
         return reject(RejectReason::NoLiquidity);
     }
@@ -94,7 +85,7 @@ void ReferenceEngine::handle_new(Sequence sequence, const NewOrder& order,
     if (order.type == OrderType::LimitGTC) {
         const auto handle = book.add(Order{
             .id = order.id,
-            .symbol = symbol->second,
+            .symbol = order.symbol,
             .side = order.side,
             .price = *order.price,
             .remaining_qty = remaining,

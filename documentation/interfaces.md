@@ -7,7 +7,7 @@ So one `EngineCommand` into the engine produces exactly one `EventBatch` out.
 
 ## Engine command
 There are two types of engine command:
-* **NewOrder:** order ID, symbol, side, order type, quantity, and an optional price (required for limit orders, absent for market orders).
+* **NewOrder:** order ID, symbol ID, side, order type, quantity, and an optional price (required for limit orders, absent for market orders).
 * **CancelOrder:** order ID.
 
 ## Events

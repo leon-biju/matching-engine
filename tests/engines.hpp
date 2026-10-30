@@ -2,10 +2,8 @@
 
 #include <array>
 #include <cstddef>
-#include <string>
 #include <utility>
 #include <variant>
-#include <vector>
 
 #include "matching/core/engine.hpp"
 #include "matching/version1/engine.hpp"
@@ -29,19 +27,18 @@ static_assert(all_engines<AnyEngine>, "every engine in AnyEngine must satisfy ma
 namespace detail {
 
 template <std::size_t... I>
-AnyEngine make_engine(std::size_t index, std::vector<std::string> symbols,
-                      std::index_sequence<I...>) {
-    using Factory = AnyEngine (*)(std::vector<std::string>);
+AnyEngine make_engine(std::size_t index, std::size_t symbol_count, std::index_sequence<I...>) {
+    using Factory = AnyEngine (*)(std::size_t);
     constexpr std::array<Factory, sizeof...(I)> factories{
-        [](std::vector<std::string> s) { return AnyEngine{std::in_place_index<I>, std::move(s)}; }...};
-    return factories.at(index)(std::move(symbols));
+        [](std::size_t count) { return AnyEngine{std::in_place_index<I>, count}; }...};
+    return factories.at(index)(symbol_count);
 }
 
 } // namespace detail
 
 // Builds the engine at `index` in AnyEngine.
-inline AnyEngine make_engine(std::size_t index, std::vector<std::string> symbols) {
-    return detail::make_engine(index, std::move(symbols),
+inline AnyEngine make_engine(std::size_t index, std::size_t symbol_count) {
+    return detail::make_engine(index, symbol_count,
                                std::make_index_sequence<std::variant_size_v<AnyEngine>>{});
 }
 

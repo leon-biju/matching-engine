@@ -73,11 +73,17 @@ using Events = std::vector<Event>;
 constexpr OrderSide Buy = OrderSide::Buy;
 constexpr OrderSide Sell = OrderSide::Sell;
 
+// The engines under test are built with two symbols, so any other ID is unknown.
+constexpr SymbolId AAPL = 0;
+constexpr SymbolId MSFT = 1;
+constexpr SymbolId UnknownSymbol = 2;
+constexpr std::size_t SymbolCount = 2;
+
 NewOrder order(OrderId id, OrderSide side, OrderType type, Quantity qty,
-               std::optional<Price> price, std::string symbol = "AAPL") {
+               std::optional<Price> price, SymbolId symbol = AAPL) {
     return NewOrder{
         .id = id,
-        .symbol = std::move(symbol),
+        .symbol = symbol,
         .side = side,
         .type = type,
         .qty = qty,
@@ -85,8 +91,8 @@ NewOrder order(OrderId id, OrderSide side, OrderType type, Quantity qty,
     };
 }
 
-NewOrder gtc(OrderId id, OrderSide side, Quantity qty, Price price, std::string symbol = "AAPL") {
-    return order(id, side, OrderType::LimitGTC, qty, price, std::move(symbol));
+NewOrder gtc(OrderId id, OrderSide side, Quantity qty, Price price, SymbolId symbol = AAPL) {
+    return order(id, side, OrderType::LimitGTC, qty, price, symbol);
 }
 
 // The parameter is the engine's index in test::AnyEngine.
@@ -98,7 +104,7 @@ protected:
 
     Events run(const EngineCommand& command) { return process(command).events; }
 
-    test::AnyEngine engine_ = test::make_engine(GetParam(), {"AAPL", "MSFT"});
+    test::AnyEngine engine_ = test::make_engine(GetParam(), SymbolCount);
 };
 
 } // namespace
@@ -120,7 +126,7 @@ TEST_P(EngineTest, SequenceStartsAtOneAndIncrements) {
 }
 
 TEST_P(EngineTest, RejectedCommandUsesSequence) {
-    const auto rejected = process(gtc(1, Buy, 10, 100, "TSLA"));
+    const auto rejected = process(gtc(1, Buy, 10, 100, UnknownSymbol));
     const auto accepted = process(gtc(2, Buy, 10, 100));
 
     EXPECT_EQ(rejected.sequence, 1u);
@@ -131,12 +137,7 @@ TEST_P(EngineTest, RejectedCommandUsesSequence) {
 // --- Validation ---
 
 TEST_P(EngineTest, UnknownSymbol) {
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100, "TSLA")),
-              (Events{OrderRejected{1, RejectReason::UnknownSymbol}}));
-}
-
-TEST_P(EngineTest, SymbolIsCaseSensitive) {
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100, "aapl")),
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100, UnknownSymbol)),
               (Events{OrderRejected{1, RejectReason::UnknownSymbol}}));
 }
 
@@ -196,9 +197,9 @@ TEST_P(EngineTest, DuplicateIdOfCancelledOrder) {
 }
 
 TEST_P(EngineTest, DuplicateIdAcrossSymbols) {
-    run(gtc(1, Buy, 10, 100, "AAPL"));
+    run(gtc(1, Buy, 10, 100, AAPL));
 
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100, "MSFT")),
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100, MSFT)),
               (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
 }
 
@@ -220,12 +221,12 @@ TEST_P(EngineTest, RejectedOrderLeavesBookUntouched) {
 TEST_P(EngineTest, DuplicateBeatsUnknownSymbol) {
     run(gtc(1, Buy, 10, 100));
 
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100, "TSLA")),
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100, UnknownSymbol)),
               (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
 }
 
 TEST_P(EngineTest, UnknownSymbolBeatsQuantity) {
-    EXPECT_EQ(run(gtc(1, Buy, 0, 100, "TSLA")),
+    EXPECT_EQ(run(gtc(1, Buy, 0, 100, UnknownSymbol)),
               (Events{OrderRejected{1, RejectReason::UnknownSymbol}}));
 }
 
@@ -251,9 +252,9 @@ TEST_P(EngineTest, NonCrossingGTCRests) {
 }
 
 TEST_P(EngineTest, SymbolsHaveSeparateBooks) {
-    run(gtc(1, Sell, 10, 100, "AAPL"));
+    run(gtc(1, Sell, 10, 100, AAPL));
 
-    EXPECT_EQ(run(gtc(2, Buy, 10, 100, "MSFT")),
+    EXPECT_EQ(run(gtc(2, Buy, 10, 100, MSFT)),
               (Events{OrderAccepted{2}, OrderRested{2, 100, 10}}));
 }
 
@@ -492,7 +493,7 @@ TEST_P(EngineTest, CancelRejectedOrder) {
 }
 
 TEST_P(EngineTest, CancelOnOtherSymbol) {
-    run(gtc(1, Buy, 10, 100, "MSFT"));
+    run(gtc(1, Buy, 10, 100, MSFT));
 
     EXPECT_EQ(run(CancelOrder{.id = 1}), (Events{OrderCancelled{1, 10}}));
 }

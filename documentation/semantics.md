@@ -3,7 +3,7 @@ This document defines the order model and matching rules for both engines. Both 
 
 ## Order model
 * **Order ID:** An unsigned 64-bit integer. IDs are global across all symbols. Once an order has been accepted, its ID cannot be reused during the lifetime of that engine instance, including after the order is filled or cancelled. An ID from a rejected order may be submitted again.
-* **Symbol:** An instrument identifier from the fixed set passed to the engine constructor. There is no command to add a symbol (yet), and orders for any other symbol are rejected with `UnknownSymbol`. Symbols are matched exactly and are case-sensitive.
+* **Symbol:** A `SymbolId`, an unsigned 32-bit index into the engine's fixed symbol set. The engine is constructed with the number of symbols, and IDs `0` to `count - 1` are valid. Orders for any other ID are rejected with `UnknownSymbol`. Mapping symbol names (such as `"AAPL"`) to IDs is the command source's job, so the engine never handles names. There is no command to add a symbol (yet).
 * **Side:** Buy or Sell.
 * **Order type:** LimitGTC, LimitIOC, LimitFOK, MarketIOC, or MarketFOK. See [Order types](#order-types).
 * **Price:** An unsigned 64-bit integer in atomic currency units (like pence or cents). A limit order must have a price > 0. A market order must not have a price.
@@ -14,7 +14,7 @@ This document defines the order model and matching rules for both engines. Both 
 A `NewOrder` command is checked against the following constraints, and is rejected with the first reason that applies. A rejected order produces no other events and never touches the book.
 
 1. `DuplicateOrderId`: the ID belongs to an order that has already been accepted.
-2. `UnknownSymbol`: the symbol is not in the engine's symbol set.
+2. `UnknownSymbol`: the symbol ID is not less than the engine's symbol count.
 3. `InvalidQuantity`: quantity == 0 (since qty is uint64_t don't need to consider negative values).
 4. `InvalidPrice`: a limit order has no price or a price of 0, or a market order has a price.
 5. `NoLiquidity`: a market order arrives when the opposite side of the book is empty.

@@ -13,8 +13,7 @@
 
 namespace matching::version1 {
 
-// The resting orders for one particular symbol.
-// one symbol. Each price level is a FIFO queue, so time priority is the
+// The resting orders for one symbol. Each price level is a FIFO queue, so time priority is the
 // position in the queue.
 class OrderBook {
 public:
@@ -25,7 +24,7 @@ public:
 
     bool side_empty(OrderSide side) const;
 
-    // Whether enough quantity crosses `limit` to fill `qty` completely`
+    // Whether enough quantity crosses `limit` to fill `qty` completely.
     bool can_fill(OrderSide aggressor_side, std::optional<Price> limit, Quantity qty) const;
 
 

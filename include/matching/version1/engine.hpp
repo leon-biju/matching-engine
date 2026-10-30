@@ -1,22 +1,32 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "matching/core/command.hpp"
 #include "matching/core/event.hpp"
+#include "matching/version1/order_book.hpp"
 
 namespace matching::version1 {
 
 class ReferenceEngine {
 public:
+    // Throws std::invalid_argument if a symbol appears more than once.
     explicit ReferenceEngine(std::vector<std::string> symbols);
 
     // Processes one command and returns exactly one batch of the events it caused.
     EventBatch process(const EngineCommand& command);
 
 private:
-    std::vector<std::string> symbols_;
+    void handle_new(Sequence sequence, const NewOrder& order, std::vector<Event>& events);
+    void handle_cancel(const CancelOrder& cancel, std::vector<Event>& events);
+
+    std::unordered_map<std::string, SymbolId> symbol_ids_;
+    std::vector<OrderBook> books_;             // Indexed by SymbolId
+    std::unordered_set<OrderId> accepted_ids_; // Every ID ever accepted, never cleared
+    std::unordered_map<OrderId, OrderBook::Handle> resting_;
     Sequence next_sequence_ = 1;
 };
 

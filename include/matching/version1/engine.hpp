@@ -13,14 +13,14 @@
 namespace matching::version1 {
 
 class ReferenceEngine {
-public:
+  public:
     // Symbol IDs 0 to symbol_count - 1 are valid.
     explicit ReferenceEngine(std::size_t symbol_count);
 
     // Processes one command and returns exactly one batch of the events it caused.
     EventBatch process(const EngineCommand& command);
 
-private:
+  private:
     void handle_new(Sequence sequence, const NewOrder& order, std::vector<Event>& events);
     void handle_cancel(const CancelOrder& cancel, std::vector<Event>& events);
 

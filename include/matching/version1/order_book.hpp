@@ -16,7 +16,7 @@ namespace matching::version1 {
 // The resting orders for one symbol. Each price level is a FIFO queue, so time priority is the
 // position in the queue.
 class OrderBook {
-public:
+  public:
     // This is used as a FIFO Queue. Using a std::list so we can easily remove middle elements
     // Also reallocation won't make handles point to deallocated memory
     using Level = std::list<Order>;
@@ -26,7 +26,6 @@ public:
 
     // Whether enough quantity crosses `limit` to fill `qty` completely.
     bool can_fill(OrderSide aggressor_side, std::optional<Price> limit, Quantity qty) const;
-
 
     // Matches an incoming order against best opposite order.
     // One trade event per resting order touched
@@ -39,7 +38,7 @@ public:
     Handle add(const Order& order);
     void remove(Handle handle);
 
-private:
+  private:
     static bool crosses(OrderSide aggressor_side, std::optional<Price> limit, Price resting_price) {
         if (!limit) {
             return true;

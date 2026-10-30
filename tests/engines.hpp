@@ -18,8 +18,7 @@ inline constexpr std::array engine_names{"version1"};
 static_assert(engine_names.size() == std::variant_size_v<AnyEngine>,
               "engine_names must name every engine in AnyEngine");
 
-template <typename>
-inline constexpr bool all_engines = false;
+template <typename> inline constexpr bool all_engines = false;
 template <typename... Es>
 inline constexpr bool all_engines<std::variant<Es...>> = (Engine<Es> && ...);
 static_assert(all_engines<AnyEngine>, "every engine in AnyEngine must satisfy matching::Engine");

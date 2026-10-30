@@ -79,8 +79,8 @@ constexpr SymbolId MSFT = 1;
 constexpr SymbolId UnknownSymbol = 2;
 constexpr std::size_t SymbolCount = 2;
 
-NewOrder order(OrderId id, OrderSide side, OrderType type, Quantity qty,
-               std::optional<Price> price, SymbolId symbol = AAPL) {
+NewOrder order(OrderId id, OrderSide side, OrderType type, Quantity qty, std::optional<Price> price,
+               SymbolId symbol = AAPL) {
     return NewOrder{
         .id = id,
         .symbol = symbol,
@@ -97,7 +97,7 @@ NewOrder gtc(OrderId id, OrderSide side, Quantity qty, Price price, SymbolId sym
 
 // The parameter is the engine's index in test::AnyEngine.
 class EngineTest : public ::testing::TestWithParam<std::size_t> {
-protected:
+  protected:
     EventBatch process(const EngineCommand& command) {
         return std::visit([&](auto& engine) { return engine.process(command); }, engine_);
     }
@@ -179,21 +179,24 @@ TEST_P(EngineTest, NoLiquidityLooksAtOppositeSideOnly) {
 TEST_P(EngineTest, DuplicateIdOfRestingOrder) {
     run(gtc(1, Buy, 10, 100));
 
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100)), (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100)),
+              (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
 }
 
 TEST_P(EngineTest, DuplicateIdOfFilledOrder) {
     run(gtc(1, Sell, 10, 100));
     run(gtc(2, Buy, 10, 100));
 
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100)), (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100)),
+              (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
 }
 
 TEST_P(EngineTest, DuplicateIdOfCancelledOrder) {
     run(gtc(1, Buy, 10, 100));
     run(CancelOrder{.id = 1});
 
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100)), (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100)),
+              (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
 }
 
 TEST_P(EngineTest, DuplicateIdAcrossSymbols) {
@@ -212,7 +215,8 @@ TEST_P(EngineTest, RejectedIdCanBeReused) {
 TEST_P(EngineTest, RejectedOrderLeavesBookUntouched) {
     run(gtc(1, Sell, 10, 100));
 
-    EXPECT_EQ(run(gtc(1, Buy, 10, 100)), (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
+    EXPECT_EQ(run(gtc(1, Buy, 10, 100)),
+              (Events{OrderRejected{1, RejectReason::DuplicateOrderId}}));
     EXPECT_EQ(run(gtc(2, Buy, 10, 100)), (Events{OrderAccepted{2}, Trade{2, 1, Buy, 100, 10}}));
 }
 
@@ -254,8 +258,7 @@ TEST_P(EngineTest, NonCrossingGTCRests) {
 TEST_P(EngineTest, SymbolsHaveSeparateBooks) {
     run(gtc(1, Sell, 10, 100, AAPL));
 
-    EXPECT_EQ(run(gtc(2, Buy, 10, 100, MSFT)),
-              (Events{OrderAccepted{2}, OrderRested{2, 100, 10}}));
+    EXPECT_EQ(run(gtc(2, Buy, 10, 100, MSFT)), (Events{OrderAccepted{2}, OrderRested{2, 100, 10}}));
 }
 
 // --- Matching ---

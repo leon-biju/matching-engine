@@ -27,7 +27,8 @@ bool OrderBook::can_fill(OrderSide aggressor_side, std::optional<Price> limit, Q
 }
 
 OrderBook::Handle OrderBook::add(const Order& order) {
-    Level& queue = with_side(order.side, [&](auto& levels) -> Level& { return levels[order.price]; });
+    Level& queue =
+        with_side(order.side, [&](auto& levels) -> Level& { return levels[order.price]; });
     queue.push_back(order);
     return std::prev(queue.end());
 }

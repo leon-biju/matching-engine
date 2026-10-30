@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "matching/core/command.hpp"
+#include "matching/core/engine.hpp"
 #include "matching/core/event.hpp"
 #include "matching/version1/order_book.hpp"
 
@@ -29,5 +30,7 @@ private:
     std::unordered_map<OrderId, OrderBook::Handle> resting_;
     Sequence next_sequence_ = 1;
 };
+
+static_assert(Engine<ReferenceEngine>);
 
 } // namespace matching::version1

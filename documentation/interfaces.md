@@ -1,7 +1,7 @@
-# Interface
+# Interfaces
 As described in the [Architecture](architecture.md), commands are passed into the engine, and events out of it, through SPSC queues.
 
-The engine reads `EngineCommand` values from the Command Source Queue. For each command it pushes one `EventBatch` holding every event that the command caused onto the EventSink Queue. For example, one market buy order can produce several trades at different price levels before it is filled.
+The engine reads `EngineCommand` values from the command source queue. For each command it pushes one `EventBatch` holding every event that the command caused onto the event sink queue. For example, one market buy order can produce several trades at different price levels before it is filled.
 
 So one `EngineCommand` into the engine produces exactly one `EventBatch` out.
 

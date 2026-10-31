@@ -6,10 +6,10 @@ Notes and open decisions to come back to. See the [Roadmap](documentation/roadma
 
 ## Phase 3: workload and baseline benchmarks
 - [x] Workload file format for recorded command streams. Fixed-size binary records behind a small header. The harness loads the whole file into memory before timing, so the format never affects the measurements.
-- [ ] Workload generator. The `realistic` and `aggressive` benchmark profiles are done. Still needed: a tool that writes a workload file from a seed, profile and command count.
-- [ ] Benchmark harness. A custom harness, not Google Benchmark. It measures the engine on its own, with no SPSC queue, and reports throughput and per-command latency percentiles (p50, p99, p99.9) from separate passes.
+- [x] Workload generator. The `realistic` and `aggressive` benchmark profiles, and `make_workload`, which writes a workload file from a profile, seed and command count.
+- [x] Benchmark harness. A custom harness, not Google Benchmark. It measures the engine on its own, with no SPSC queue, and reports throughput and per-command latency percentiles (p50, p99, p99.9) from separate passes.
 - [x] `release` preset for benchmarks: `CMAKE_BUILD_TYPE=Release` with `-march=native`. Tests keep running under `default` and `sanitize`.
-- [ ] Baseline benchmarks of the reference engine, recorded in `documentation/benchmarks.md` with the CPU, compiler, seed and profile for each run. CI builds the harness but never checks timings, because shared runners are too noisy.
+- [x] Baseline benchmarks of the reference engine, recorded in `documentation/benchmarks.md` with the CPU, compiler, seed and profile for each run. CI builds the harness but never checks timings, because shared runners are too noisy.
 - [ ] Once Version 2 exists, add a brief comparison to the README that links to `benchmarks.md`.
 
 ## Open decisions

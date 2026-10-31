@@ -30,6 +30,43 @@ struct GeneratorConfig {
     unsigned reused_id_chance = 10; // A new order reuses an ID it sent before
 };
 
+// Named configs for benchmark workloads. The defaults above suit the invariant tests, which want
+// every rejection often; these send only well-formed commands, so the engine spends its time
+// matching. Cancels can still name filled orders, and market orders can still find an empty book.
+namespace profiles {
+
+// Mostly resting limit orders over a wide price range, so books grow deep, with heavy cancelling.
+inline constexpr GeneratorConfig realistic{
+    .symbol_count = 8,
+    .mid_price = 10'000,
+    .price_range = 100,
+    .max_quantity = 100,
+    .type_weights{12, 3, 1, 2, 1},
+    .cancel_chance = 400,
+    .cancel_random_chance = 0,
+    .unknown_symbol_chance = 0,
+    .zero_quantity_chance = 0,
+    .bad_price_chance = 0,
+    .reused_id_chance = 0,
+};
+
+// A narrow price range and few cancels, so most orders cross and the engine mostly trades.
+inline constexpr GeneratorConfig aggressive{
+    .symbol_count = 8,
+    .mid_price = 10'000,
+    .price_range = 5,
+    .max_quantity = 100,
+    .type_weights{8, 4, 2, 4, 2},
+    .cancel_chance = 100,
+    .cancel_random_chance = 0,
+    .unknown_symbol_chance = 0,
+    .zero_quantity_chance = 0,
+    .bad_price_chance = 0,
+    .reused_id_chance = 0,
+};
+
+} // namespace profiles
+
 // Generates a random command stream. The same seed and config always produce the same stream,
 // on any platform: std::mt19937_64 is fully specified, and the distributions are written here
 // because the standard library ones are not.
@@ -42,7 +79,9 @@ class CommandGenerator {
         : rng_(seed), config_(config) {}
 
     EngineCommand next() {
-        if (chance(config_.cancel_chance)) {
+        // With no random cancels and no GTC order to name, send a new order instead.
+        if (chance(config_.cancel_chance) &&
+            (config_.cancel_random_chance > 0 || !gtc_ids_.empty())) {
             return cancel();
         }
         return new_order();

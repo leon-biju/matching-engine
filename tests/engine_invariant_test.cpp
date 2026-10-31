@@ -349,3 +349,27 @@ TEST(CommandGeneratorTest, DifferentSeedsDiffer) {
     }
     EXPECT_NE(a, b);
 }
+
+// The benchmark profiles must send only well-formed new orders with unique IDs, and cancels that
+// name only IDs already sent.
+TEST(CommandGeneratorTest, BenchmarkProfilesSendWellFormedCommands) {
+    for (const workload::GeneratorConfig& config :
+         {workload::profiles::realistic, workload::profiles::aggressive}) {
+        workload::CommandGenerator generator(7, config);
+        std::unordered_set<OrderId> sent;
+        for (int i = 0; i < 20'000; ++i) {
+            const EngineCommand command = generator.next();
+            if (const auto* order = std::get_if<NewOrder>(&command)) {
+                ASSERT_TRUE(sent.insert(order->id).second) << "reused ID " << order->id;
+                ASSERT_LT(order->symbol, config.symbol_count);
+                ASSERT_GT(order->qty, 0u);
+                ASSERT_EQ(order->price.has_value(), !is_market(order->type));
+                if (order->price) {
+                    ASSERT_GT(*order->price, 0u);
+                }
+            } else {
+                ASSERT_TRUE(sent.contains(std::get<CancelOrder>(command).id));
+            }
+        }
+    }
+}

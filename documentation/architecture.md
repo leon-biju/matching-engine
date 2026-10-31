@@ -15,7 +15,9 @@ The correctness suite in [engine_correctness_test.cpp](../tests/engine_correctne
 The invariant suite in [engine_invariant_test.cpp](../tests/engine_invariant_test.cpp) runs long random command streams through the same engines. After every command it checks the batch against a shadow model of the books built only from the events: sequencing, the event patterns, quantity balance, price-time priority at the resting price, FOK fills, cancels, and that no book is ever crossed. Each stream has a fixed seed in the test name, so a failure can be rerun with `--gtest_filter='*_seed<N>'`.
 
 ## Command generator
-`matching::workload::CommandGenerator` in [command_generator.hpp](../include/matching/workload/command_generator.hpp) produces a random command stream from a seed and a `GeneratorConfig`. The same seed and config give the same stream on any platform. It mixes all order types and sides with invalid symbols, zero quantities, bad prices, reused IDs, and cancels for both resting and unknown orders. The invariant tests use it now, and the Phase 3 workload generator will reuse it.
+`matching::workload::CommandGenerator` in [command_generator.hpp](../include/matching/workload/command_generator.hpp) produces a random command stream from a seed and a `GeneratorConfig`. The same seed and config give the same stream on any platform. It mixes all order types and sides with invalid symbols, zero quantities, bad prices, reused IDs, and cancels for both resting and unknown orders. The invariant tests use it with the default config.
+
+The `realistic` and `aggressive` configs in `matching::workload::profiles` are for benchmarks. They send only well-formed commands with unique IDs. `realistic` builds deep books with heavy cancelling, and `aggressive` keeps prices narrow so most orders trade.
 
 ## Version 2
 The Version 2 design (threading model, ownership of order IDs across threads, and keeping batches in engine-sequence order) is deliberately not planned yet. It will be designed once the reference engine and baseline benchmarks are in place. Open questions are tracked in the [TODO](../TODO.md).

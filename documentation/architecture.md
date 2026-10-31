@@ -10,7 +10,7 @@ Both engines satisfy the `matching::Engine` concept in [engine.hpp](../include/m
 * **Version 2:** not designed yet (see below).
 
 ## Tests
-The correctness suite in [engine_correctness_test.cpp](../tests/engine_correctness_test.cpp) runs against every engine listed in [engines.hpp](../tests/engines.hpp), so adding an engine there runs every behaviour test against it.
+The correctness suite in [engine_correctness_test.cpp](../tests/engine_correctness_test.cpp) runs against every engine listed in [engines.hpp](../tests/engines.hpp), so adding an engine there runs every behaviour test against it. Each test also runs with both a buy and a sell aggressor, with prices mirrored for the sell side.
 
 The invariant suite in [engine_invariant_test.cpp](../tests/engine_invariant_test.cpp) runs long random command streams through the same engines. After every command it checks the batch against a shadow model of the books built only from the events: sequencing, the event patterns, quantity balance, price-time priority at the resting price, FOK fills, cancels, and that no book is ever crossed. Each stream has a fixed seed in the test name, so a failure can be rerun with `--gtest_filter='*_seed<N>'`.
 

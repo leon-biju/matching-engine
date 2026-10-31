@@ -14,7 +14,7 @@ Notes and open decisions to come back to. See the [Roadmap](documentation/roadma
 ## Phase 4: optimised engine
 The decisions behind these tasks are in [Architecture](documentation/architecture.md#version-2).
 
-- [ ] **Sink interface.** Change the `Engine` concept so engines push events to a sink instead of returning a new `EventBatch` for every command. Decide how the sink marks where each batch starts and ends, and update Version 1, the tests, `engine_benchmark` and `interfaces.md` to match.
+- [x] **Sink interface.** Engines push events to an `EventSink` instead of returning a new `EventBatch` for every command.
 - [ ] **Differential test.** Run Version 1 and every other engine side by side on generated streams (default config, `realistic` and `aggressive`) and compare every batch with `EXPECT_EQ`, reporting the first batch that differs.
 - [ ] **Profile Version 1** on the `realistic` and `aggressive` workloads to find where the time goes, and record the findings to guide the Version 2 design.
 - [ ] **Version 2 design.** Choose the data structures from the profile and write them into `architecture.md`.

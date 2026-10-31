@@ -307,7 +307,7 @@ TEST_P(EngineInvariantTest, RandomStream) {
 
     for (std::size_t i = 1; i <= CommandsPerSeed; ++i) {
         const EngineCommand command = generator.next();
-        const EventBatch batch = std::visit([&](auto& e) { return e.process(command); }, engine);
+        const EventBatch batch = test::process(engine, command);
         model.check(command, batch);
         if (HasFailure()) {
             FAIL() << "first failure at command " << i << " of seed " << seed << ": "

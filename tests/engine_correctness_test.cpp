@@ -4,7 +4,6 @@
 #include <optional>
 #include <string>
 #include <tuple>
-#include <variant>
 #include <vector>
 
 #include "engines.hpp"
@@ -50,9 +49,7 @@ using Param = std::tuple<std::size_t, OrderSide>; // Engine index in test::AnyEn
 
 class EngineTest : public ::testing::TestWithParam<Param> {
   protected:
-    EventBatch process(const EngineCommand& command) {
-        return std::visit([&](auto& engine) { return engine.process(command); }, engine_);
-    }
+    EventBatch process(const EngineCommand& command) { return test::process(engine_, command); }
 
     Events run(const EngineCommand& command) { return process(command).events; }
 

@@ -4,7 +4,7 @@ For both versions, an arbitrary command source feeds commands to the matching en
 The command source maps symbol names to `SymbolId`s before commands reach the engine, so the engine only ever works with IDs.
 
 ## Engines
-Both engines satisfy the `matching::Engine` concept in [engine.hpp](../include/matching/core/engine.hpp): they are built from a symbol count, and turn each command into exactly one event batch.
+Both engines satisfy the `matching::Engine` concept in [engine.hpp](../include/matching/core/engine.hpp): they are built from a symbol count, and send exactly one event batch to an [event sink](interfaces.md#event-batch) for each command.
 
 * **Version 1** (`matching::version1::ReferenceEngine`): one `OrderBook` per symbol. Each side of a book is a `std::map` of price levels, and each level is a `std::list` FIFO queue, so a resting order can be removed by its handle.
 * **Version 2:** not built yet. See [Version 2](#version-2) for the decisions made so far.
@@ -34,9 +34,7 @@ Version 2 matches on a single thread, like Version 1. Its speed comes from faste
 Splitting symbols across several matching threads was rejected for now. The thread that routes commands and the stage that restores engine-sequence order would both be single-threaded, each handoff between threads costs about as much as matching a command in Version 1, and global order IDs clash with the rules. A market order rejected with `NoLiquidity` frees its ID for reuse, and whether that happens depends on the book, so the routing thread could not check `DuplicateOrderId` without waiting for the symbol's thread. It may be tried later if profiling shows matching itself is the bottleneck, and it would need a change to [Semantics](semantics.md#validation).
 
 ### Engine interface
-Engines take events to a sink instead of returning them: `process(command, sink)` pushes each event the command causes to a sink the caller provides. A test sink collects events into batches, and the production sink writes them straight into the SPSC queue, so an engine no longer allocates a new event vector for every command. Each call still handles one command completely before returning. Splitting symbols across threads would need an interface that takes a whole stream of commands, so that waits until the split is attempted.
-
-This changes the `Engine` concept in [engine.hpp](../include/matching/core/engine.hpp), Version 1, the tests and `engine_benchmark`.
+Engines send events to a sink instead of returning them: `process(command, sink)` pushes each event the command causes to a sink the caller provides (see [Event batch](interfaces.md#event-batch)). The tests collect events into batches, `engine_benchmark` only counts them, and the production sink will write them straight into the SPSC queue, so an engine never has to allocate a new event vector for every command. Version 1 still builds each command's events in a vector, but reuses it between commands. Each call handles one command completely before returning. Splitting symbols across threads would need an interface that takes a whole stream of commands, so that waits until the split is attempted.
 
 ### Validation
 Version 1 is the reference: Version 2 is correct when it produces the same event batches as Version 1 for the same commands. A differential test runs both engines side by side on the same generated streams and compares every batch, reporting the first one that differs. It uses the default generator config and the `realistic` and `aggressive` profiles, so it also covers the deep books that the invariant suite never builds. The correctness and invariant suites keep running against every engine as well.

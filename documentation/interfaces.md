@@ -1,7 +1,7 @@
 # Interfaces
 As described in the [Architecture](architecture.md), commands are passed into the engine, and events out of it, through SPSC queues.
 
-The engine reads `EngineCommand` values from the command source queue. For each command it pushes one `EventBatch` holding every event that the command caused onto the event sink queue. For example, one market buy order can produce several trades at different price levels before it is filled.
+The engine reads `EngineCommand` values from the command source queue. For each command it sends one batch holding every event that the command caused to the event sink. For example, one market buy order can produce several trades at different price levels before it is filled.
 
 So one `EngineCommand` into the engine produces exactly one `EventBatch` out.
 
@@ -41,3 +41,5 @@ The events in a batch always follow one of these patterns depending on the comma
 Each batch is stamped with the engine sequence of the command that caused it, so every batch has a unique sequence number.
 
 Batches are published in engine-sequence order, and the events of different commands are never interleaved.
+
+An engine sends a batch to any type that satisfies the `matching::EventSink` concept in [event_sink.hpp](../include/matching/core/event_sink.hpp). For each command it calls `begin_batch` once with the command's sequence, then `add` once for each event in order, then `end_batch`. The sink decides what to do with them. `BatchCollector` collects them into `EventBatch` values, and a production sink can write them straight into a queue.

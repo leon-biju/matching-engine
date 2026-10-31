@@ -373,3 +373,10 @@ TEST(CommandGeneratorTest, BenchmarkProfilesSendWellFormedCommands) {
         }
     }
 }
+
+TEST(CommandGeneratorTest, ProfilesByName) {
+    EXPECT_EQ(workload::profiles::by_name("realistic"), workload::profiles::realistic);
+    EXPECT_EQ(workload::profiles::by_name("aggressive"), workload::profiles::aggressive);
+    EXPECT_EQ(workload::profiles::by_name("test"), workload::GeneratorConfig{});
+    EXPECT_EQ(workload::profiles::by_name("unknown"), std::nullopt);
+}

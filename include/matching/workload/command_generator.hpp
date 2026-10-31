@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <random>
+#include <string_view>
 #include <vector>
 
 #include "matching/core/command.hpp"
@@ -28,6 +29,8 @@ struct GeneratorConfig {
     unsigned zero_quantity_chance = 10;
     unsigned bad_price_chance = 10; // A limit order without a valid price, or a market with one
     unsigned reused_id_chance = 10; // A new order reuses an ID it sent before
+
+    bool operator==(const GeneratorConfig&) const = default;
 };
 
 // Named configs for benchmark workloads. The defaults above suit the invariant tests, which want
@@ -64,6 +67,20 @@ inline constexpr GeneratorConfig aggressive{
     .bad_price_chance = 0,
     .reused_id_chance = 0,
 };
+
+// Looks up a config by name: "realistic", "aggressive", or "test" for the defaults.
+inline std::optional<GeneratorConfig> by_name(std::string_view name) {
+    if (name == "realistic") {
+        return realistic;
+    }
+    if (name == "aggressive") {
+        return aggressive;
+    }
+    if (name == "test") {
+        return GeneratorConfig{};
+    }
+    return std::nullopt;
+}
 
 } // namespace profiles
 

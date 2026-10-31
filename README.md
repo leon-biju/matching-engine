@@ -18,6 +18,8 @@ To select another compiler on the first configure, use `cmake --preset default -
 
 To build and test with AddressSanitizer and UndefinedBehaviorSanitizer, use the `sanitize` preset in place of `default` for all three commands. It builds in `build-sanitize`.
 
+For benchmarks, use the `release` preset to configure and build. It builds in `build-release` with optimisations and `-march=native`, so its binaries are tuned to the machine that builds them.
+
 [CI](.github/workflows/ci.yml) runs on pushes to `master` and on pull requests. It builds and tests with GCC 14 and Clang 18 on Ubuntu 24.04 under both presets, and checks formatting with `clang-format-18`.
 
 ## Documentation

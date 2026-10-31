@@ -18,11 +18,21 @@
             "cacheVariables": {
                 "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer"
             }
+        },
+        {
+            "name": "release",
+            "inherits": "default",
+            "binaryDir": "${sourceDir}/build-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-march=native"
+            }
         }
     ],
     "buildPresets": [
         { "name": "default", "configurePreset": "default" },
-        { "name": "sanitize", "configurePreset": "sanitize" }
+        { "name": "sanitize", "configurePreset": "sanitize" },
+        { "name": "release", "configurePreset": "release" }
     ],
     "testPresets": [
         {

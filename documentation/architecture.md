@@ -19,5 +19,8 @@ The invariant suite in [engine_invariant_test.cpp](../tests/engine_invariant_tes
 
 The `realistic` and `aggressive` configs in `matching::workload::profiles` are for benchmarks. They send only well-formed commands with unique IDs. `realistic` builds deep books with heavy cancelling, and `aggressive` keeps prices narrow so most orders trade.
 
+## Workload files
+A workload file records a command stream and the symbol count to build the engine with, so a benchmark can replay the same stream. [workload_file.hpp](../include/matching/workload/workload_file.hpp) defines the format and reads and writes it. Each command is a fixed-size little-endian binary record, and malformed commands are kept as they are. A benchmark loads the whole file before timing starts, so the format never affects the measurements.
+
 ## Version 2
 The Version 2 design (threading model, ownership of order IDs across threads, and keeping batches in engine-sequence order) is deliberately not planned yet. It will be designed once the reference engine and baseline benchmarks are in place. Open questions are tracked in the [TODO](../TODO.md).

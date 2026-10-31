@@ -2,67 +2,15 @@
 
 #include <cstddef>
 #include <optional>
-#include <ostream>
 #include <string>
 #include <variant>
 #include <vector>
 
 #include "engines.hpp"
+#include "printers.hpp"
 
 // Every test follows documentation/semantics.md and documentation/interfaces.md, and runs
 // against every engine listed in engines.hpp.
-
-namespace matching {
-
-// Readable gtest output for failed event comparisons, found by ADL.
-const char* to_string(OrderSide side) {
-    return side == OrderSide::Buy ? "Buy" : "Sell";
-}
-
-const char* to_string(RejectReason reason) {
-    switch (reason) {
-    case RejectReason::DuplicateOrderId:
-        return "DuplicateOrderId";
-    case RejectReason::UnknownSymbol:
-        return "UnknownSymbol";
-    case RejectReason::InvalidQuantity:
-        return "InvalidQuantity";
-    case RejectReason::InvalidPrice:
-        return "InvalidPrice";
-    case RejectReason::NoLiquidity:
-        return "NoLiquidity";
-    case RejectReason::UnknownOrder:
-        return "UnknownOrder";
-    }
-    return "?";
-}
-
-void PrintTo(const OrderAccepted& e, std::ostream* os) {
-    *os << "Accepted(" << e.id << ")";
-}
-
-void PrintTo(const OrderRejected& e, std::ostream* os) {
-    *os << "Rejected(" << e.id << ", " << to_string(e.reason) << ")";
-}
-
-void PrintTo(const Trade& e, std::ostream* os) {
-    *os << "Trade(" << e.aggressor_id << "->" << e.resting_id << ", " << to_string(e.aggressor_side)
-        << ", " << e.quantity << "@" << e.price << ")";
-}
-
-void PrintTo(const OrderRested& e, std::ostream* os) {
-    *os << "Rested(" << e.id << ", " << e.price << ", " << e.remaining << ")";
-}
-
-void PrintTo(const OrderCancelled& e, std::ostream* os) {
-    *os << "Cancelled(" << e.id << ", " << e.remaining << ")";
-}
-
-void PrintTo(const CancelRejected& e, std::ostream* os) {
-    *os << "CancelRejected(" << e.id << ", " << to_string(e.reason) << ")";
-}
-
-} // namespace matching
 
 using namespace matching;
 

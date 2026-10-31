@@ -2,7 +2,7 @@
 Notes and open decisions to come back to. See the [Roadmap](documentation/roadmap.md) for the phases.
 
 ## Phase 2: reference engine
-- [ ] **Randomised invariant tests.** Run random command streams through the engine and check after every command that the book is never crossed, quantities balance, and the resting-order index agrees with the book. Write the stream generator so it can be reused as the Phase 3 workload generator.
+- [x] **Randomised invariant tests.** Run random command streams through the engine and check after every command that the book is never crossed, quantities balance, and the resting-order index agrees with the book. Write the stream generator so it can be reused as the Phase 3 workload generator.
 
 ## Phase 3: workload and baseline benchmarks
 - [ ] Workload file format for recorded command streams.

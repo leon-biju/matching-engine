@@ -14,10 +14,14 @@ struct NewOrder {
     OrderType type;
     Quantity qty;
     std::optional<Price> price; // Required for limit orders, absent for market orders
+
+    bool operator==(const NewOrder&) const = default;
 };
 
 struct CancelOrder {
     OrderId id;
+
+    bool operator==(const CancelOrder&) const = default;
 };
 
 using EngineCommand = std::variant<NewOrder, CancelOrder>;

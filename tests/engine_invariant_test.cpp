@@ -380,3 +380,43 @@ TEST(CommandGeneratorTest, ProfilesByName) {
     EXPECT_EQ(workload::profiles::by_name("test"), workload::GeneratorConfig{});
     EXPECT_EQ(workload::profiles::by_name("unknown"), std::nullopt);
 }
+
+// A passive GTC order is priced on its own side of the mid price, so passive orders never cross.
+TEST(CommandGeneratorTest, PassiveOrdersRestOnTheirOwnSide) {
+    workload::GeneratorConfig config;
+    config.passive_chance = 1000;
+    workload::CommandGenerator generator(3, config);
+    for (int i = 0; i < 20'000; ++i) {
+        const EngineCommand command = generator.next();
+        const auto* order = std::get_if<NewOrder>(&command);
+        if (order == nullptr || order->type != OrderType::LimitGTC || !order->price ||
+            *order->price == 0) {
+            continue; // Not a GTC order, or one given a bad price on purpose
+        }
+        if (order->side == OrderSide::Buy) {
+            ASSERT_LT(*order->price, config.mid_price);
+        } else {
+            ASSERT_GT(*order->price, config.mid_price);
+        }
+    }
+}
+
+// Cancels only start once enough GTC orders are waiting to be named.
+TEST(CommandGeneratorTest, CancelsWaitForPool) {
+    workload::GeneratorConfig config;
+    config.cancel_random_chance = 0;
+    config.cancel_pool_min = 500;
+    workload::CommandGenerator generator(4, config);
+    std::size_t gtc_sent = 0;
+    for (int i = 0; i < 5'000; ++i) {
+        const EngineCommand command = generator.next();
+        if (std::holds_alternative<CancelOrder>(command)) {
+            ASSERT_GE(gtc_sent, config.cancel_pool_min) << "cancel at command " << i;
+            return;
+        }
+        if (std::get<NewOrder>(command).type == OrderType::LimitGTC) {
+            ++gtc_sent;
+        }
+    }
+    FAIL() << "no cancel in 5,000 commands";
+}

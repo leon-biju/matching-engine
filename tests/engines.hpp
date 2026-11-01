@@ -2,10 +2,15 @@
 
 #include <array>
 #include <cstddef>
+#include <stdexcept>
+#include <string>
 #include <utility>
 #include <variant>
 
+#include "matching/core/command.hpp"
 #include "matching/core/engine.hpp"
+#include "matching/core/event.hpp"
+#include "matching/core/event_sink.hpp"
 #include "matching/version1/engine.hpp"
 
 namespace matching::test {
@@ -39,6 +44,18 @@ AnyEngine make_engine(std::size_t index, std::size_t symbol_count, std::index_se
 inline AnyEngine make_engine(std::size_t index, std::size_t symbol_count) {
     return detail::make_engine(index, symbol_count,
                                std::make_index_sequence<std::variant_size_v<AnyEngine>>{});
+}
+
+// Processes one command and returns the batch the engine sent for it. Throws if the engine sent
+// anything other than exactly one batch.
+inline EventBatch process(AnyEngine& engine, const EngineCommand& command) {
+    BatchCollector sink;
+    std::visit([&](auto& e) { e.process(command, sink); }, engine);
+    if (sink.batches().size() != 1) {
+        throw std::logic_error("engine sent " + std::to_string(sink.batches().size()) +
+                               " batches for one command");
+    }
+    return std::move(sink.batches().front());
 }
 
 } // namespace matching::test

@@ -3,7 +3,7 @@ A C++23 project to build and compare two multi-symbol order matching engines: a 
 
 ## Project scope
 - **Version 1 (reference engine):** A single-threaded correctness baseline that prioritises clarity and provides a reference for validating Version 2.
-- **Version 2 (optimised engine):** A high-performance, multi-threaded implementation evaluated against the reference engine for both correctness and speed.
+- **Version 2 (optimised engine):** A high-performance implementation evaluated against the reference engine for both correctness and speed. It matches on a single thread, with the command source and event sink on their own threads.
 
 ## Building and testing
 Requires CMake 3.25 or newer, GCC 14 or Clang 18 (or newer) and Make. The default preset selects `clang++`. Test configuration requires GoogleTest.

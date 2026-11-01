@@ -23,23 +23,24 @@ OrderSide opposite(OrderSide side) {
 
 ReferenceEngine::ReferenceEngine(std::size_t symbol_count) : books_(symbol_count) {}
 
-EventBatch ReferenceEngine::process(const EngineCommand& command) {
+Sequence ReferenceEngine::handle(const EngineCommand& command) {
     // The sequence starts at 1, so it only reaches 0 by wrapping.
     if (next_sequence_ == 0) {
         throw std::overflow_error("engine sequence exhausted");
     }
-    EventBatch batch{.sequence = next_sequence_++, .events = {}};
+    const Sequence sequence = next_sequence_++;
+    events_.clear();
 
     std::visit(
         [&](const auto& cmd) {
             if constexpr (std::is_same_v<std::decay_t<decltype(cmd)>, NewOrder>) {
-                handle_new(batch.sequence, cmd, batch.events);
+                handle_new(sequence, cmd, events_);
             } else {
-                handle_cancel(cmd, batch.events);
+                handle_cancel(cmd, events_);
             }
         },
         command);
-    return batch;
+    return sequence;
 }
 
 void ReferenceEngine::handle_new(Sequence sequence, const NewOrder& order,

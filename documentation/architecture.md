@@ -4,10 +4,10 @@ For both versions, an arbitrary command source feeds commands to the matching en
 The command source maps symbol names to `SymbolId`s before commands reach the engine, so the engine only ever works with IDs.
 
 ## Engines
-Both engines satisfy the `matching::Engine` concept in [engine.hpp](../include/matching/core/engine.hpp): they are built from a symbol count, and turn each command into exactly one event batch.
+Both engines satisfy the `matching::Engine` concept in [engine.hpp](../include/matching/core/engine.hpp): they are built from a symbol count, and send exactly one event batch to an [event sink](interfaces.md#event-batch) for each command.
 
 * **Version 1** (`matching::version1::ReferenceEngine`): one `OrderBook` per symbol. Each side of a book is a `std::map` of price levels, and each level is a `std::list` FIFO queue, so a resting order can be removed by its handle.
-* **Version 2:** not designed yet (see below).
+* **Version 2:** not built yet. See [Version 2](#version-2) for the decisions made so far.
 
 ## Tests
 The correctness suite in [engine_correctness_test.cpp](../tests/engine_correctness_test.cpp) runs against every engine listed in [engines.hpp](../tests/engines.hpp), so adding an engine there runs every behaviour test against it. Each test also runs with both a buy and a sell aggressor, with prices mirrored for the sell side.
@@ -26,4 +26,18 @@ A workload file records a command stream and the symbol count to build the engin
 The tools in [benchmarks/](../benchmarks) are `make_workload`, which writes a workload file from a generator profile and seed, and `engine_benchmark`, which replays a file through every engine and reports throughput and latency. See [Benchmarks](benchmarks.md) for the method and results.
 
 ## Version 2
-The Version 2 design (threading model, ownership of order IDs across threads, and keeping batches in engine-sequence order) is deliberately not planned yet. It will be designed once the reference engine and baseline benchmarks are in place. Open questions are tracked in the [TODO](../TODO.md).
+These decisions were made before building Version 2. The tasks that follow from them, and the questions still open, are in the [TODO](../TODO.md#phase-4-optimised-engine).
+
+### Threading
+Version 2 matches on a single thread, like Version 1. Its speed comes from faster data structures, not from splitting the matching across threads. The threads are the stages around it: the command source, the engine and the event sink each run on their own thread, joined by the SPSC queues described at the top of this page.
+
+Splitting symbols across several matching threads was rejected for now. The thread that routes commands and the stage that restores engine-sequence order would both be single-threaded, each handoff between threads costs about as much as matching a command in Version 1, and global order IDs clash with the rules. A market order rejected with `NoLiquidity` frees its ID for reuse, and whether that happens depends on the book, so the routing thread could not check `DuplicateOrderId` without waiting for the symbol's thread. It may be tried later if profiling shows matching itself is the bottleneck, and it would need a change to [Semantics](semantics.md#validation).
+
+### Engine interface
+Engines send events to a sink instead of returning them: `process(command, sink)` pushes each event the command causes to a sink the caller provides (see [Event batch](interfaces.md#event-batch)). The tests collect events into batches, `engine_benchmark` only counts them, and the production sink will write them straight into the SPSC queue, so an engine never has to allocate a new event vector for every command. Version 1 still builds each command's events in a vector, but reuses it between commands. Each call handles one command completely before returning. Splitting symbols across threads would need an interface that takes a whole stream of commands, so that waits until the split is attempted.
+
+### Validation
+Version 1 is the reference: Version 2 is correct when it produces the same event batches as Version 1 for the same commands. A differential test runs both engines side by side on the same generated streams and compares every batch, reporting the first one that differs. It uses the default generator config and the `realistic` and `aggressive` profiles, so it also covers the deep books that the invariant suite never builds. The correctness and invariant suites keep running against every engine as well.
+
+### Benchmarks
+`engine_benchmark` keeps measuring each engine on its own, with no queues. A second, full-pipeline benchmark runs the source, engine and sink on their own threads with SPSC queues between them. It timestamps each command as it is queued and again when its batch reaches the sink, so it measures what the threading is for. Both use the same workload files, so their results can be compared.

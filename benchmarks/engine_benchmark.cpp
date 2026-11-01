@@ -13,6 +13,9 @@
 #include <vector>
 
 #include "matching/core/engine.hpp"
+#include "matching/core/event.hpp"
+#include "matching/core/event_sink.hpp"
+#include "matching/core/types.hpp"
 #include "matching/version1/engine.hpp"
 #include "matching/workload/workload_file.hpp"
 
@@ -29,6 +32,21 @@ namespace {
 
 using Clock = std::chrono::steady_clock;
 
+// Counts events without storing them, so the sink adds as little as possible to the timings.
+class CountingSink {
+  public:
+    void begin_batch(Sequence) {}
+    void add(const Event&) { ++events_; }
+    void end_batch() {}
+
+    std::uint64_t events() const { return events_; }
+
+  private:
+    std::uint64_t events_ = 0;
+};
+
+static_assert(EventSink<CountingSink>);
+
 struct Throughput {
     double best = 0;   // Commands per second
     double median = 0; // Commands per second
@@ -42,27 +60,28 @@ template <Engine E> Throughput measure_throughput(const workload::Workload& work
     std::uint64_t events = 0;
     for (int run = 0; run < repeats; ++run) {
         E engine(workload.symbol_count);
-        events = 0;
+        CountingSink sink;
         const auto start = Clock::now();
         for (const EngineCommand& command : workload.commands) {
-            events += engine.process(command).events.size();
+            engine.process(command, sink);
         }
         const std::chrono::duration<double> elapsed = Clock::now() - start;
+        events = sink.events();
         rates.push_back(static_cast<double>(workload.commands.size()) / elapsed.count());
     }
     std::ranges::sort(rates);
     return {.best = rates.back(), .median = rates[rates.size() / 2], .events = events};
 }
 
-// Times each command on its own through one fresh engine, in nanoseconds, sorted. Like the
-// throughput pass, each time includes destroying the batch.
+// Times each command on its own through one fresh engine, in nanoseconds, sorted.
 template <Engine E> std::vector<std::int64_t> measure_latency(const workload::Workload& workload) {
     std::vector<std::int64_t> latencies;
     latencies.reserve(workload.commands.size());
     E engine(workload.symbol_count);
+    CountingSink sink;
     for (const EngineCommand& command : workload.commands) {
         const auto start = Clock::now();
-        engine.process(command);
+        engine.process(command, sink);
         const auto end = Clock::now();
         latencies.push_back(std::chrono::nanoseconds(end - start).count());
     }

@@ -19,7 +19,7 @@ The decisions behind these tasks are in [Architecture](documentation/architectur
 - [ ] **Profile Version 1** on the `realistic` and `aggressive` workloads to find where the time goes, and record the findings to guide the Version 2 design.
 - [ ] **Version 2 design.** Choose the data structures from the profile and write them into `architecture.md`.
 - [ ] **Version 2 engine.** Build it, validating it with the differential test as it develops, and add it to `tests/engines.hpp` and `engine_benchmark`.
-- [ ] **SPSC queue and full-pipeline benchmark.** Source, engine and sink on their own threads. Measure throughput, and latency from queuing a command to its batch reaching the sink. Document the method in `benchmarks.md`.
+- [x] **SPSC queue and full-pipeline benchmark.** Source, engine and sink on their own threads. Measure throughput, and latency from queuing a command to its batch reaching the sink. Document the method in `benchmarks.md`.
 - [ ] Once Version 2 exists, add a brief comparison to the README that links to `benchmarks.md`.
 
 ## Open decisions

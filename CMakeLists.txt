@@ -16,6 +16,12 @@ add_library(matching::core ALIAS matching_core)
 target_include_directories(matching_core INTERFACE include)
 target_compile_features(matching_core INTERFACE cxx_std_23)
 
+# Header-only SPSC queue and queue sink that join the pipeline's threads
+find_package(Threads REQUIRED)
+add_library(matching_pipeline INTERFACE)
+add_library(matching::pipeline ALIAS matching_pipeline)
+target_link_libraries(matching_pipeline INTERFACE matching::core Threads::Threads)
+
 add_subdirectory(src/version1)
 
 include(CTest)

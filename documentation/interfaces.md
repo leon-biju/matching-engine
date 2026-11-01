@@ -42,4 +42,4 @@ Each batch is stamped with the engine sequence of the command that caused it, so
 
 Batches are published in engine-sequence order, and the events of different commands are never interleaved.
 
-An engine sends a batch to any type that satisfies the `matching::EventSink` concept in [event_sink.hpp](../include/matching/core/event_sink.hpp). For each command it calls `begin_batch` once with the command's sequence, then `add` once for each event in order, then `end_batch`. The sink decides what to do with them. `BatchCollector` collects them into `EventBatch` values, and a production sink can write them straight into a queue.
+An engine sends a batch to any type that satisfies the `matching::EventSink` concept in [event_sink.hpp](../include/matching/core/event_sink.hpp). For each command it calls `begin_batch` once with the command's sequence, then `add` once for each event in order, then `end_batch`. The sink decides what to do with them. `BatchCollector` collects them into `EventBatch` values, and `QueueSink` writes them straight into an SPSC queue (see [Pipeline](architecture.md#pipeline)).

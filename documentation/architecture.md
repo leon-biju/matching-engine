@@ -29,7 +29,7 @@ The shared tests run each command through `test::process` in [engines.hpp](../te
 ## Command generator
 `matching::workload::CommandGenerator` in [command_generator.hpp](../include/matching/workload/command_generator.hpp) produces a random command stream from a seed and a `GeneratorConfig`. The same seed and config give the same stream on any platform. It mixes all order types and sides with invalid symbols, zero quantities, bad prices, reused IDs, and cancels for both resting and unknown orders. The invariant tests use it with the default config.
 
-The `realistic` and `aggressive` configs in `matching::workload::profiles` are for benchmarks. They send only well-formed commands with unique IDs. `realistic` builds deep books with heavy cancelling, and `aggressive` keeps prices narrow so most orders trade.
+The `realistic` and `aggressive` configs in `matching::workload::profiles` are for benchmarks. They send only well-formed commands with unique IDs. `realistic` prices most GTC orders on their own side of the mid price so they rest, and holds back cancels until 20,000 GTC orders are waiting to be named. Its books settle at about 1,350 resting orders over 130 price levels per symbol, with heavy cancelling. `aggressive` keeps prices narrow so most orders trade.
 
 ## Workload files
 A workload file records a command stream and the symbol count to build the engine with, so a benchmark can replay the same stream. [workload_file.hpp](../include/matching/workload/workload_file.hpp) defines the format and reads and writes it. Each command is a fixed-size little-endian binary record, and malformed commands are kept as they are. A benchmark loads the whole file before timing starts, so the format never affects the measurements.

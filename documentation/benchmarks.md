@@ -40,9 +40,9 @@ CI runs every tool on a small workload as a smoke test, but never checks timings
 ## Results
 
 ### Version 1 baseline
-Machine: Intel Core i5-1135G7 laptop (4 cores, 8 threads), with frequency scaling on. Compiler: Clang 23.1.4, `release` preset. Measured on 2026-10-31. Each workload has 5,000,000 commands from seed 1.
+Machine: Intel Core i5-1135G7 laptop (4 cores, 8 threads), with frequency scaling on. Compiler: Clang 23.1.4, `release` preset. Measured on 2026-11-01, after the change to the event sink interface and the fix that lets `realistic` books grow deep. Each workload has 5,000,000 commands from seed 1.
 
 | Workload | Throughput, best | Throughput, median | Events | p50 | p90 | p99 | p99.9 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `realistic` | 13.03M/s | 12.97M/s | 8,154,116 | 83 ns | 130 ns | 205 ns | 456 ns |
-| `aggressive` | 10.42M/s | 10.32M/s | 10,550,327 | 91 ns | 149 ns | 241 ns | 405 ns |
+| `realistic` | 8.05M/s | 7.94M/s | 8,875,447 | 120 ns | 205 ns | 424 ns | 707 ns |
+| `aggressive` | 12.94M/s | 12.83M/s | 10,550,327 | 74 ns | 127 ns | 205 ns | 332 ns |

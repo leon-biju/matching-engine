@@ -25,6 +25,10 @@ struct GeneratorConfig {
 
     unsigned cancel_chance = 250;        // A command is a CancelOrder
     unsigned cancel_random_chance = 200; // A cancel names a random ID, not a GTC order it sent
+    // Cancels wait until at least this many sent GTC orders are left to name, so books can grow.
+    std::size_t cancel_pool_min = 0;
+    // A GTC order is priced on its own side of mid_price (buys below, sells above), so it rests.
+    unsigned passive_chance = 0;
     unsigned unknown_symbol_chance = 10; // A new order has a symbol ID outside the valid range
     unsigned zero_quantity_chance = 10;
     unsigned bad_price_chance = 10; // A limit order without a valid price, or a market with one
@@ -38,7 +42,8 @@ struct GeneratorConfig {
 // matching. Cancels can still name filled orders, and market orders can still find an empty book.
 namespace profiles {
 
-// Mostly resting limit orders over a wide price range, so books grow deep, with heavy cancelling.
+// Mostly passive GTC orders over a wide price range, with heavy cancelling once books are deep.
+// Books take roughly the first 50,000 commands to fill up.
 inline constexpr GeneratorConfig realistic{
     .symbol_count = 8,
     .mid_price = 10'000,
@@ -47,6 +52,8 @@ inline constexpr GeneratorConfig realistic{
     .type_weights{12, 3, 1, 2, 1},
     .cancel_chance = 400,
     .cancel_random_chance = 0,
+    .cancel_pool_min = 20'000,
+    .passive_chance = 900,
     .unknown_symbol_chance = 0,
     .zero_quantity_chance = 0,
     .bad_price_chance = 0,
@@ -96,8 +103,8 @@ class CommandGenerator {
         : rng_(seed), config_(config) {}
 
     EngineCommand next() {
-        // With no random cancels and no GTC order to name, send a new order instead.
-        if (chance(config_.cancel_chance) &&
+        // With too few GTC orders to name, or none and no random cancels, send a new order instead.
+        if (chance(config_.cancel_chance) && gtc_ids_.size() >= config_.cancel_pool_min &&
             (config_.cancel_random_chance > 0 || !gtc_ids_.empty())) {
             return cancel();
         }
@@ -136,7 +143,7 @@ class CommandGenerator {
                           : chance(500) ? std::nullopt
                                         : std::optional<Price>{0};
         } else if (!market) {
-            order.price = limit_price();
+            order.price = passive(order.type) ? passive_price(order.side) : limit_price();
         }
 
         if (order.type == OrderType::LimitGTC) {
@@ -175,6 +182,19 @@ class CommandGenerator {
 
     Price limit_price() {
         return config_.mid_price - config_.price_range + below(2 * config_.price_range + 1);
+    }
+
+    // Draws only when passive_chance is set, so configs without it give the same stream as before.
+    bool passive(OrderType type) {
+        return type == OrderType::LimitGTC && config_.passive_chance > 0 &&
+               chance(config_.passive_chance);
+    }
+
+    // 1 to price_range ticks away from mid_price on the order's own side, so it never crosses
+    // another passive order.
+    Price passive_price(OrderSide side) {
+        const Price offset = 1 + below(config_.price_range);
+        return side == OrderSide::Buy ? config_.mid_price - offset : config_.mid_price + offset;
     }
 
     // Uniform in [0, bound). Rejects the top of the range that would bias the modulo.

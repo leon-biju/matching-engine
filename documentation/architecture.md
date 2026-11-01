@@ -14,6 +14,10 @@ The correctness suite in [engine_correctness_test.cpp](../tests/engine_correctne
 
 The invariant suite in [engine_invariant_test.cpp](../tests/engine_invariant_test.cpp) runs long random command streams through the same engines. After every command it checks the batch against a shadow model of the books built only from the events: sequencing, the event patterns, quantity balance, price-time priority at the resting price, FOK fills, cancels, and that no book is ever crossed. Each stream has a fixed seed in the test name, so a failure can be rerun with `--gtest_filter='*_seed<N>'`.
 
+The differential suite in [engine_differential_test.cpp](../tests/engine_differential_test.cpp) runs every engine side by side with `version1::ReferenceEngine` on the same generated command streams, and compares each command's batch with the reference's. It stops at the first batch that differs and reports the command's index, the command and both batches. It runs the default generator config and the `realistic` and `aggressive` profiles, each over several fixed seeds named in the test name, so a failure can be rerun with `--gtest_filter='*_<profile>_seed<N>'`. Version 1 is also compared with itself, which checks that it is deterministic.
+
+The shared tests run each command through `test::process` in [engines.hpp](../tests/engines.hpp), which fails if an engine breaks the [sink protocol](interfaces.md#event-batch).
+
 ## Command generator
 `matching::workload::CommandGenerator` in [command_generator.hpp](../include/matching/workload/command_generator.hpp) produces a random command stream from a seed and a `GeneratorConfig`. The same seed and config give the same stream on any platform. It mixes all order types and sides with invalid symbols, zero quantities, bad prices, reused IDs, and cancels for both resting and unknown orders. The invariant tests use it with the default config.
 
@@ -37,7 +41,7 @@ Splitting symbols across several matching threads was rejected for now. The thre
 Engines send events to a sink instead of returning them: `process(command, sink)` pushes each event the command causes to a sink the caller provides (see [Event batch](interfaces.md#event-batch)). The tests collect events into batches, `engine_benchmark` only counts them, and the production sink will write them straight into the SPSC queue, so an engine never has to allocate a new event vector for every command. Version 1 still builds each command's events in a vector, but reuses it between commands. Each call handles one command completely before returning. Splitting symbols across threads would need an interface that takes a whole stream of commands, so that waits until the split is attempted.
 
 ### Validation
-Version 1 is the reference: Version 2 is correct when it produces the same event batches as Version 1 for the same commands. A differential test runs both engines side by side on the same generated streams and compares every batch, reporting the first one that differs. It uses the default generator config and the `realistic` and `aggressive` profiles, so it also covers the deep books that the invariant suite never builds. The correctness and invariant suites keep running against every engine as well.
+Version 1 is the reference: Version 2 is correct when it produces the same event batches as Version 1 for the same commands. The [differential suite](#tests) checks this for every engine in the tests, and the correctness and invariant suites run against every engine as well.
 
 ### Benchmarks
 `engine_benchmark` keeps measuring each engine on its own, with no queues. A second, full-pipeline benchmark runs the source, engine and sink on their own threads with SPSC queues between them. It timestamps each command as it is queued and again when its batch reaches the sink, so it measures what the threading is for. Both use the same workload files, so their results can be compared.
